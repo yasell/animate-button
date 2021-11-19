@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import styles from './Button.module.scss'
 
-export type Variant = 'default' | 'css' | 'js'
+export type Variant = 'default' | 'waapi' | 'js'
 export type Size = 'xs' | 'sm'
-export type State = 'disabled' | 'loading' | 'active'
 
 export const TEXTS: Array<string> = [
     'Lets start!',
@@ -13,11 +12,11 @@ export const TEXTS: Array<string> = [
     'Adding a pinch of magic',
     'Get my sleepscape',
 ]
-export const buildClass = (...classes: (string | undefined | false)[]): string => {
-    const className = classes.filter(Boolean).join(' ')
 
-    return className
+export const buildClass = (...classes: (string | undefined | false)[]): string => {
+    return classes.filter(Boolean).join(' ')
 }
+
 export interface IButtonProps {
     variant?: Variant;
     size?: Size;
@@ -26,8 +25,7 @@ export interface IButtonProps {
     isDisabled?: boolean;
 }
 
-export type Ref = HTMLButtonElement | HTMLAnchorElement
-export const Button = React.forwardRef<Ref, IButtonProps>(
+export const Button: React.FC<IButtonProps> =
     (
         {
             variant,
@@ -35,23 +33,27 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
             children,
             type,
             isDisabled,
-        },
-        ref
+        }
     ) => {
         const buttonRef = useRef<HTMLButtonElement>(null)
+        const buttonTextRef = useRef<HTMLSpanElement>(null)
         const buttonBarRef = useRef<HTMLSpanElement>(null)
-        const animationRef = useRef<Animation>()
+        const animationBarRef = useRef<Animation>()
+        const animationTextRef = useRef<Animation>()
         const animationPercentage = useRef<number>(0)
+
         const [isAnimate, setIsAnimate] = useState<boolean>(false)
         const [animateClass, setAnimateClass] = useState<string>('')
         const [activeText, setActiveText] = useState<string>('')
         const [timerValue, setTimerValue] = useState<number>(0)
         const [pauseAnimationTime, setPauseAnimationTime] = useState<number>(0)
-        const className = buildClass(
+
+        const animationDurationBar: number = 8500
+        const animationDurationTotal: number = 10000
+        const dynamicClassName = buildClass(
             styles.button,
             animateClass
         )
-        const animationDurationMs: number = 8500
 
         useEffect(() => {
             setActiveText(TEXTS[0])
@@ -59,8 +61,8 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
 
         useEffect(() => {
             document.addEventListener('click', handleButtonClickOutside, true)
-            animationPercentage.current = animationRef && animationRef.current && animationRef.current.currentTime ?
-                Math.trunc((animationRef.current.currentTime * 100) / animationDurationMs)  :
+            animationPercentage.current = animationBarRef && animationBarRef.current && animationBarRef.current.currentTime ?
+                Math.trunc(animationBarRef.current.currentTime * 100 / animationDurationBar) :
                 0
 
             return () => {
@@ -86,43 +88,84 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
         }, [isAnimate])
 
         useEffect(() => {
-            const currentPercentage = animationPercentage.current
-
-            if (!animationRef.current) return
-
-            if (currentPercentage === 37) {
-                setActiveText(TEXTS[2])
-                pauseAnimationTime === 0 && setPauseAnimationTime(timerValue)
-                animationRef.current.pause()
-            }
-
-            if (currentPercentage === 69) {
-                setActiveText(TEXTS[3])
-                pauseAnimationTime === 0 && setPauseAnimationTime(timerValue)
-                animationRef.current.pause()
-            }
-
-            if (currentPercentage === 91) {
-                setActiveText(TEXTS[4])
-                pauseAnimationTime === 0 && setPauseAnimationTime(timerValue)
-                animationRef.current.pause()
-            }
-
-            if (currentPercentage === 100) {
-                setActiveText(TEXTS[5])
-            }
-
-            if (pauseAnimationTime === 0) return
-
-            if (timerValue === pauseAnimationTime + 5) {
-                animationRef.current.play()
-                setPauseAnimationTime(0)
-            }
+            controlAnimation()
         }, [timerValue])
 
         const animate = () => {
+            if (buttonTextRef && buttonTextRef.current) {
+                animationTextRef.current = buttonTextRef.current.animate(
+                    [
+                        {
+                            offset: 0,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 0.32,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 0.35,
+                            transform: 'translateY(-100%)',
+                            opacity: 0
+                        },
+                        {
+                            offset: 0.38,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 0.64,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 0.67,
+                            transform: 'translateY(-100%)',
+                            opacity: 0
+                        },
+                        {
+                            offset: 0.70,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 0.88,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 0.91,
+                            transform: 'translateY(-100%)',
+                            opacity: 0
+                        },
+                        {
+                            offset: 0.94,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                        {
+                            offset: 1,
+                            transform: 'translateY(0)',
+                            opacity: 1
+                        },
+                    ],
+                    {
+                        delay: 0,
+                        endDelay: 0,
+                        iterationStart: 0,
+                        iterations: 1,
+                        duration: animationDurationTotal,
+                        fill: 'forwards',
+                        direction: 'normal',
+                        easing: 'linear'
+                    }
+                )
+            }
+
             if (buttonBarRef && buttonBarRef.current) {
-                animationRef.current = buttonBarRef.current.animate(
+                animationBarRef.current = buttonBarRef.current.animate(
                     [
                         {
                             offset: 0,
@@ -150,7 +193,7 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
                         endDelay: 0,
                         iterationStart: 0,
                         iterations: 1,
-                        duration: animationDurationMs,
+                        duration: animationDurationBar,
                         fill: 'forwards',
                         direction: 'normal',
                         easing: 'linear'
@@ -159,27 +202,46 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
             }
         }
 
-        // useEffect(() => {
-        // let interval: NodeJS.Timeout
-        //     if (isAnimate) {
-        //         setAnimateClass(styles.animate)
-        //
-        //         // interval = setInterval(() => {
-        //         //     setTimerValue(oldPercent => {
-        //         //         const newPercent = oldPercent + 1
-        //         //
-        //         //         if (newPercent === 100) {
-        //         //             clearInterval(interval)
-        //         //         }
-        //         //
-        //         //         return newPercent
-        //         //     })
-        //         // }, 100)
-        //     } else {
-        //         setAnimateClass('')
-        //         setTimerValue(0)
-        //     }
-        // }, [isAnimate])
+        const controlAnimation = () => {
+            const currentPercentage = animationPercentage.current
+
+            if (!animationBarRef.current) return
+
+            if (!isAnimate) {
+                setActiveText(TEXTS[0])
+                animationBarRef.current.cancel()
+                animationTextRef.current?.cancel()
+
+                return animationPercentage.current = 0
+            }
+
+            if (currentPercentage === 37) {
+                setActiveText(TEXTS[2])
+                pauseAnimationTime === 0 && setPauseAnimationTime(timerValue)
+                animationBarRef.current.pause()
+            }
+
+            if (currentPercentage === 69) {
+                setActiveText(TEXTS[3])
+                pauseAnimationTime === 0 && setPauseAnimationTime(timerValue)
+                animationBarRef.current.pause()
+            }
+
+            if (currentPercentage === 91) {
+                setActiveText(TEXTS[4])
+                pauseAnimationTime === 0 && setPauseAnimationTime(timerValue)
+                animationBarRef.current.pause()
+            }
+
+            if (timerValue === 100) {
+                setActiveText(TEXTS[5])
+            }
+
+            if (timerValue === pauseAnimationTime + 5) {
+                animationBarRef.current.play()
+                setPauseAnimationTime(0)
+            }
+        }
 
         const handleButtonClick = (event: React.MouseEvent) => {
             setIsAnimate(true)
@@ -194,8 +256,8 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
         }
 
         return <button
-            className={variant === 'css' ? className : styles.button}
             ref={buttonRef}
+            className={variant === 'waapi' ? dynamicClassName : styles.button}
             onClick={handleButtonClick}
             type={type ? type : 'button'}
             disabled={isDisabled}
@@ -204,9 +266,18 @@ export const Button = React.forwardRef<Ref, IButtonProps>(
                 ref={buttonBarRef}
                 className={styles.buttonBar}
             />
-            {activeText}
-            {' '}
-            {animationPercentage.current < 100 ? animationPercentage.current + '%' : ''}
+            <span
+                ref={buttonTextRef}
+                className={styles.buttonText}
+            >
+                {activeText}
+                {' '}
+                {
+                    activeText !== TEXTS[0] && activeText !== TEXTS[TEXTS.length - 1] &&
+                    <>
+                        {`${animationPercentage.current} %`}
+                    </>
+                }
+            </span>
         </button>
     }
-)
